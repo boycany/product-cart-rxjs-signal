@@ -27,7 +27,9 @@ export class CartItemComponent {
   // Mapped to an array from 1-8
   // qtyArr = [...Array(8).keys()].map((x) => x + 1);
 
-  qtyArr = computed<number[]>(() => [...Array(this.cartItem().product.quantityInStock).keys()].map((x) => x + 1));
+  qtyArr = computed<number[]>(() =>
+    [...Array(this.cartItem().product.quantityInStock).keys()].map((x) => x + 1)
+  );
 
   // Calculate the extended price
   exPrice = computed(
@@ -35,7 +37,7 @@ export class CartItemComponent {
   );
 
   onQuantitySelected(quantity: number): void {
-    console.log('quantity :>> ', quantity);
+    // console.log('quantity :>> ', quantity);
     this.cartService.updateQuantity(this.cartItem(), quantity);
   }
 

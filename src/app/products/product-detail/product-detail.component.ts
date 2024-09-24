@@ -1,9 +1,15 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 
 import { NgIf, NgFor, CurrencyPipe, AsyncPipe } from '@angular/common';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
-import { EMPTY, catchError, tap } from 'rxjs';
 import { CartService } from 'src/app/cart/cart.service';
 
 @Component({
@@ -19,6 +25,7 @@ export class ProductDetailComponent {
   // Product to display
   product = this.productService.product;
   errorMessage = this.productService.productsError;
+  loading = this.productService.productLoading;
 
   // product$ = this.productService.product$.pipe(
   //   tap(() => console.log('product$ in ProductDetail component pipeline')),
@@ -31,7 +38,7 @@ export class ProductDetailComponent {
   // Set the page title
   pageTitle = computed(() => {
     return this.product()
-      ? `Product Detail for: ${this.product()?.productName}`
+      ? `Product Detail for ${this.product()?.productName}`
       : 'Product Detail';
   });
 

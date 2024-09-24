@@ -3,6 +3,7 @@ import {
   DestroyRef,
   Injectable,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -20,7 +21,6 @@ import {
   tap,
 } from 'rxjs';
 import { Product, Result } from './product';
-import { ProductData } from './product-data';
 import { HttpErrorService } from '../utilities/http-error.service';
 import { ReviewService } from '../reviews/review.service';
 import { Review } from '../reviews/review';
@@ -51,6 +51,7 @@ export class ProductService {
 
   products = computed(() => this.productsResult().data);
   productsError = computed(() => this.productsResult().error);
+  productsLoading = signal(true);
 
   /** try...catch... to do Error Handling */
   // products = computed(() => {
@@ -63,7 +64,8 @@ export class ProductService {
 
   private productResult$ = this.productSelected$.pipe(
     filter(Boolean),
-    tap((id) => console.log('product$ in ProductService pipeline: >> ', id)),
+    tap(() => this.productLoading.set(true)),
+    // tap((id) => console.log('product$ in ProductService pipeline: >> ', id)),
     switchMap((id) => {
       const productUrl = this.productsUrl + '/' + id;
       return this.http.get<Product>(productUrl).pipe(
@@ -76,11 +78,13 @@ export class ProductService {
         )
       );
     }),
-    map((product) => ({ data: product } as Result<Product>))
+    map((product) => ({ data: product } as Result<Product>)),
+    tap(() => this.productLoading.set(false))
   );
   private productResult = toSignal(this.productResult$);
   product = computed(() => this.productResult()?.data);
   productError = computed(() => this.productResult()?.error);
+  productLoading = signal(false);
 
   //Alternative approach with product, because products$ using cache, so it will be a bit faster
   // readonly product$ = combineLatest([
@@ -98,9 +102,10 @@ export class ProductService {
   getProducts(): Observable<Result<Product[]>> {
     return this.http.get<Product[]>(this.productsUrl).pipe(
       map((p) => ({ data: p } as Result<Product[]>)),
-      tap((data) => console.log(JSON.stringify(data))),
+      // tap((data) => console.log(JSON.stringify(data))),
       shareReplay(1),
-      tap(() => console.log('After shareReplay')),
+      // tap(() => console.log('After shareReplay')),
+      tap(() => this.productsLoading.set(false)),
       catchError((err) => this.handleError(err))
     );
   }
@@ -108,7 +113,7 @@ export class ProductService {
   getProduct(id: number): Observable<Product> {
     const productUrl = `${this.productsUrl}/${id}`;
     return this.http.get<Product>(productUrl).pipe(
-      tap(() => console.log('product get by id pipeline')),
+      // tap(() => console.log('product get by id pipeline')),
       switchMap((product) => this.getProductWithReviews(product)),
       catchError((err) => this.handleError(err))
     );
